@@ -1,58 +1,57 @@
 <template>
-    <div class="admin-page">
-      <h1>创建新投票</h1>
-      <form @submit.prevent="createPoll">
-        <div>
-          <label for="pollName">投票名称:</label>
-          <input id="pollName" v-model="poll.name" type="text" required>
-        </div>
-        <div v-for="(option, index) in poll.options" :key="index">
-          <label for="option">投票选项 {{ index + 1 }}:</label>
-          <input v-model="option.title" type="text" required>
-          <button @click.prevent="removeOption(index)">移除</button>
-        </div>
-        <button @click.prevent="addOption">添加选项</button>
-        <div>
-          <label for="maxVotes">候选人数:</label>
-          <input id="maxVotes" v-model.number="poll.maxVotes" type="number" min="1" required>
-        </div>
-        <button type="submit">创建投票</button>
-      </form>
-    </div>
-  </template>
+  <div class="admin-page">
+    <h1>管理页面</h1>
+    <!-- 密码验证表单 -->
+    <form @submit.prevent="verifyPassword">
+      <div>
+        <label for="password">管理员密码:</label>
+        <input id="password" v-model="adminPassword" type="password" required>
+      </div>
+      <button type="submit">重置所有投票</button>
+    </form>
+  </div>
+</template>
+
   
-  <script>
-  export default {
-    name: 'AdminPage',
-    data() {
-      return {
-        poll: {
-          name: '',
-          options: [{ title: '' }, { title: '' }], // 初始时有两个空的投票选项
-          maxVotes: 1,
-        },
-      };
+<script>
+export default {
+  name: 'AdminPage',
+  data() {
+    return {
+      adminPassword: '', // 管理员密码输入
+    };
+  },
+  methods: {
+    verifyPassword() {
+      const hardcodedPassword = 'admin'; // 硬编码的密码
+      if (this.adminPassword === hardcodedPassword) {
+        this.clearVotes(); // 密码正确，调用清空投票记录的方法
+      } else {
+        alert('密码错误');
+      }
     },
-    methods: {
-      addOption() {
-        this.poll.options.push({ title: '' });
-      },
-      removeOption(index) {
-        this.poll.options.splice(index, 1);
-      },
-      createPoll() {
-        // 这里应该包含将新创建的投票发送到后端的代码
-        // 例如：axios.post('/api/polls', this.poll)
-        console.log('创建的投票:', this.poll);
-        this.resetForm();
-      },
-      resetForm() {
-        this.poll = { name: '', options: [{ title: '' }, { title: '' }], maxVotes: 1 };
-      },
+    clearVotes() {
+      // 调用后端接口清空投票记录
+      fetch('/api/clear-votes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+      })
+      .then(data => {
+        alert(data.message); // 显示后端返回的成功信息
+      })
+      .catch(error => {
+        console.error('Error clearing votes:', error);
+        alert('清空投票记录过程中出现错误');
+      });
     },
-  };
-  </script>
-  
+  },
+};
+</script>
+
   
   
   <style scoped>
